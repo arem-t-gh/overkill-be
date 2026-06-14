@@ -1,0 +1,14 @@
+from fastapi import FastAPI
+from api.v1.router import router as api_v1_router
+from typing import Literal
+
+app = FastAPI(title="Overkill")
+
+
+@app.get("/")
+async def home() -> Literal[200]:
+    """Home endpoint."""
+    return 200
+
+
+app.include_router(api_v1_router, prefix="/api/v1")
