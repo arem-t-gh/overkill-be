@@ -21,8 +21,8 @@ def sign_in(email: str, password: str) -> AuthResponse:
     return response
 
 
-def get_user_via_access_token(token: str) -> UserResponse | None:
-    """Fetch the user object from supabase via access token."""
+def get_user_by_access_token(token: str) -> UserResponse | None:
+    """Fetch the user object from supabase by access token."""
     response = sb.auth.get_user(token)
 
     return response
