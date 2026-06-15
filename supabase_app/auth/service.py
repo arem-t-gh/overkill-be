@@ -1,5 +1,6 @@
-from supabase_app import sb
 from supabase_auth.types import AuthResponse, UserResponse
+
+from supabase_app import sb
 
 
 def sign_up(email: str, password: str) -> AuthResponse:

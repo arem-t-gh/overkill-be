@@ -1,15 +1,14 @@
-from fastapi import APIRouter
+from typing import Annotated
 
-from supabase_app.auth.service import (
-    sign_up as sb_sign_up,
-    sign_in as sb_sign_in,
-)
+from fastapi import APIRouter, Depends
 from supabase_auth.types import AuthResponse
 
 from api.v1.auth.schemas import SignInRequest, SignUpRequest
-from typing import Annotated
-from fastapi import Depends
 from auth.service import get_current_user
+from supabase_app.auth.service import (
+    sign_in as sb_sign_in,
+    sign_up as sb_sign_up,
+)
 
 router = APIRouter()
 

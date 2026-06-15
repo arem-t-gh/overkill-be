@@ -1,6 +1,8 @@
-from fastapi import FastAPI
-from api.v1.router import router as api_v1_router
 from typing import Literal
+
+from fastapi import FastAPI
+
+from api.v1.router import router as api_v1_router
 
 app = FastAPI(title="Overkill")
 

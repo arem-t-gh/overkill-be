@@ -1,7 +1,9 @@
 from typing import Annotated
-from fastapi.security import HTTPAuthorizationCredentials
-from auth.security import http_bearer_scheme
+
 from fastapi import Depends
+from fastapi.security import HTTPAuthorizationCredentials
+
+from auth.security import http_bearer_scheme
 from supabase_app.auth.service import get_user_by_access_token
 
 
