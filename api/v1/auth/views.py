@@ -4,34 +4,44 @@ from fastapi import APIRouter, Depends
 from supabase_auth.types import AuthResponse
 
 from api.v1.auth.schemas import SignInRequest, SignUpRequest
-from auth.service import get_current_user
-from supabase_app.auth.service import (
-    sign_in as sb_sign_in,
-    sign_up as sb_sign_up,
+from auth.service import (
+    get_current_user,
+    sign_up as auth_sign_up,
 )
+from db.database import DBSession
+from supabase_app.auth.service import sign_in as sb_sign_in
+from user.models import UserRead
 
 router = APIRouter()
 
 
-@router.post("/sign-in")
-def sign_in(request: SignInRequest) -> AuthResponse:
+# @router.post("/sign-in")
+# async def sign_in(request: SignInRequest) -> AuthResponse:
+#     """Supabase sign in."""
+#     result = sb_sign_in(request.email, request.password)
+#     return result
+
+
+# EXPERIMENTAL. REMOVE THIS AND DO SOMETHING BETTER.
+@router.post("/access-token")
+async def access_token(request: SignInRequest) -> AuthResponse:
     """Supabase sign in."""
+    # EXPERIMENTAL. REMOVE THIS AND DO SOMETHING BETTER.
     result = sb_sign_in(request.email, request.password)
 
     return result
 
 
 @router.get("/current-user")
-def current_user(user: Annotated[dict, Depends(get_current_user)]):
+async def current_user(
+    user: Annotated[UserRead, Depends(get_current_user)],
+) -> UserRead:
     """Get current user"""
-    # TODO: should return user from db not supabase
-    # TODO: return type
     return user
 
 
 @router.post("/sign-up")
-def sign_up(request: SignUpRequest) -> AuthResponse:
+async def sign_up(db_session: DBSession, request: SignUpRequest) -> UserRead:
     """Supabase sign up."""
-    response = sb_sign_up(request.email, request.password)
-
-    return response
+    new_user = await auth_sign_up(db_session, request.email, request.password)
+    return new_user

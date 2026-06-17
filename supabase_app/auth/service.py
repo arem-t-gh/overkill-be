@@ -1,16 +1,17 @@
+from pydantic import EmailStr
 from supabase_auth.types import AuthResponse, UserResponse
 
 from supabase_app import sb
 
 
-def sign_up(email: str, password: str) -> AuthResponse:
+def sign_up(email: EmailStr, password: str) -> AuthResponse:
     """Supabase email sign up."""
     response = sb.auth.sign_up({"email": email, "password": password})
 
     return response
 
 
-def sign_in(email: str, password: str) -> AuthResponse:
+def sign_in(email: EmailStr, password: str) -> AuthResponse:
     """Supabase email sign in."""
     response = sb.auth.sign_in_with_password(
         {

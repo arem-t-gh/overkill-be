@@ -7,6 +7,8 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
 from config import DB_URI
+
+# Read metadata for database tracking
 from db import alembic_models  # noqa
 from db.database import Base
 
@@ -58,7 +60,7 @@ def run_migrations_offline() -> None:
         context.run_migrations()
 
 
-def do_run_migrations(connection: Connection) -> None: # noqa
+def do_run_migrations(connection: Connection) -> None:  # noqa
     context.configure(connection=connection, target_metadata=target_metadata)
 
     with context.begin_transaction():

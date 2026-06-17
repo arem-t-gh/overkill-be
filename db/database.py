@@ -24,18 +24,23 @@ engine = create_async_engine(
 
 # Acts as the write layer
 AsyncSessionLocal: async_sessionmaker[AsyncSession] = async_sessionmaker(
+    # Q: No autocommit=False?
+    # A: Removed in SQLAlchemy 2.0.
+    # https://docs.sqlalchemy.org/en/21/changelog/migration_20.html#autocommit-mode-removed-from-session-autobegin-support-added
     bind=engine,
     autoflush=False,
     expire_on_commit=False,  # After commit, don’t expire objects. Keep their data around.
 )
 
-# Q: No autocommit=False?
-# A: Removed in SQLAlchemy 2.0.
-# https://docs.sqlalchemy.org/en/21/changelog/migration_20.html#autocommit-mode-removed-from-session-autobegin-support-added
-
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     """DB session dependency injector."""
+
+    # Q: Why not use the `with session.begin()` pattern to handle the rollback automatically?
+    # A: That pattern implicitly does commit on success and rollback on error
+    # A: The automatic rollback is fine. But we want to handle the commit inside the business layer manually.
+    # https://docs.sqlalchemy.org/en/20/orm/session_basics.html#framing-out-a-begin-commit-rollback-block
+
     async with AsyncSessionLocal() as session:
         try:
             yield session
@@ -44,11 +49,6 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
             # https://docs.sqlalchemy.org/en/20/orm/session_basics.html#framing-out-a-begin-commit-rollback-block
             await session.rollback()
             raise
-
-    # Q: Why not use the `with session.begin()` pattern to handle the rollback automatically?
-    # A: That pattern implicitly does commit on success and rollback on error
-    # A: The automatic rollback is fine. But we want to handle the commit inside the business layer manually.
-    # https://docs.sqlalchemy.org/en/20/orm/session_basics.html#framing-out-a-begin-commit-rollback-block
 
 
 DBSession = Annotated[AsyncSession, Depends(get_db_session)]
