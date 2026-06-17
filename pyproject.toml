@@ -6,8 +6,10 @@ readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
     "alembic>=1.18.4",
+    "asyncpg>=0.31.0",
     "click>=8.4.1",
     "fastapi[standard]>=0.136.3",
+    "greenlet>=3.5.1",
     "python-dotenv>=1.2.2",
     "sqlalchemy>=2.0.50",
     "supabase>=2.31.0",
@@ -25,5 +27,6 @@ package = false
 [tool.poe]
 executor.type = "uv"
 
+# TODO: improve/add CLI --helpers etc
 [tool.poe.tasks]
 authcli = "-m utils.cli.auth ${args}"

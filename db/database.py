@@ -2,12 +2,18 @@ from typing import Annotated, AsyncGenerator
 
 from fastapi import Depends
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import DeclarativeBase
 
-import config
+from config import DB_URI
+
+
+class Base(DeclarativeBase):
+    pass
+
 
 # Acts as the connection layer
 engine = create_async_engine(
-    config.DB_URI,
+    DB_URI,
     pool_size=10,
     max_overflow=20,
     pool_pre_ping=True,
