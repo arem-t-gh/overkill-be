@@ -5,10 +5,12 @@ from supabase_auth.types import AuthResponse
 
 from api.v1.auth.schemas import SignInRequest, SignUpRequest
 from auth.service import (
+    AuthorizedCurrentUser,
     get_current_user,
     sign_up as auth_sign_up,
 )
 from db.database import DBSession
+from role.constants import ADMIN_ROLE_ID
 from supabase_app.auth.service import sign_in as sb_sign_in
 from user.models import UserRead
 
@@ -30,6 +32,14 @@ async def access_token(request: SignInRequest) -> AuthResponse:
     result = sb_sign_in(request.email, request.password)
 
     return result
+
+
+@router.post("/test-auth-check")
+async def auth_check(
+    user: Annotated[UserRead, Depends(AuthorizedCurrentUser([ADMIN_ROLE_ID]))],
+) -> UserRead:
+    """Test auth check"""
+    return user
 
 
 @router.get("/current-user")

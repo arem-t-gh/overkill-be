@@ -30,3 +30,4 @@ executor.type = "uv"
 # TODO: improve/add CLI --helpers etc
 [tool.poe.tasks]
 authcli = "-m utils.cli.auth ${args}"
+fresh-seed = "-m db.seeders.seeder"

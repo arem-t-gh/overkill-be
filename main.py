@@ -7,6 +7,9 @@ from supabase_auth.errors import AuthApiError
 
 from api.v1.router import router as api_v1_router
 
+# To register models in Python upon running and prevent missing references error
+from db import alembic_models  # noqa
+
 app = FastAPI(title="Overkill")
 
 
