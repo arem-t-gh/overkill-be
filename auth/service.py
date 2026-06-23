@@ -33,6 +33,8 @@ async def get_current_user(
 
 
 class AuthorizedCurrentUser:
+    """Check user's request authorization dependency."""
+
     def __init__(self, authorized_role_ids: List[int]):
         """Initialize with a list of ids allowed to access the route."""
         self.authorized_role_ids = authorized_role_ids

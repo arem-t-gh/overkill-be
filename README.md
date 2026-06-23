@@ -8,6 +8,10 @@ _This repo is loosely based on: https://github.com/Netflix/dispatch_
 
 <!-- TODO: ALL COMMANDS SHOULD BE RUNNING INSIDE DOCKER (cli, linters, etc) -->
 
+### Pre reqs
+- Python 3.11
+- uv package manager
+
 ### Enter venv
 macOS/Linux
 - `source .venv/bin/activate`

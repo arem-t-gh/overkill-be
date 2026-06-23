@@ -39,6 +39,7 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     # Q: Why not use the `with session.begin()` pattern to handle the rollback automatically?
     # A: That pattern implicitly does commit on success and rollback on error
     # A: The automatic rollback is fine. But we want to handle the commit inside the business layer manually.
+    # https://docs.sqlalchemy.org/en/20/orm/session_basics.html#opening-and-closing-a-session
     # https://docs.sqlalchemy.org/en/20/orm/session_basics.html#framing-out-a-begin-commit-rollback-block
 
     async with AsyncSessionLocal() as session:
