@@ -12,3 +12,4 @@ SUPABASE_KEY: str = os.environ.get("SUPABASE_KEY", "")
 
 # DB
 DB_URI: str = os.environ.get("DB_URI", "")
+TEST_DB_URI: str = os.environ.get("TEST_DB_URI", "")
