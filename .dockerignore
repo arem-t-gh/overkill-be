@@ -1,0 +1,7 @@
+# Ignore everything by default
+*
+
+# Only send what the Dockerfile actually needs at build time
+!pyproject.toml
+!uv.lock
+!entrypoint.sh
