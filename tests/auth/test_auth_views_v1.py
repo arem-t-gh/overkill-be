@@ -1,5 +1,6 @@
-from unittest.mock import ANY, AsyncMock, patch
+from unittest.mock import ANY, AsyncMock, MagicMock, patch
 
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from sqlalchemy.exc import DBAPIError
@@ -7,15 +8,36 @@ from supabase_auth.errors import AuthApiError
 
 from api.router_handler import register_routers
 from api.v1.auth.views import get_current_user
+from db.database import get_db_session
 from exception_handlers import register_exception_handlers
 from role.constants import USER_ROLE_ID
+from supabase_app import get_supabase_client
 from user.models import UserRead
 
-mock_db_session_dependency = ANY
-mock_supabase_client_dependeny = ANY
+
+# If callable is a fixture, pytest executes it already once it enters the test.
+# So for fixtures that are expected to be callable, then the return should be a callable as well
+@pytest.fixture
+async def mock_db_session_dependency():
+    """Mock db dependency."""
+
+    async def _override():
+        yield MagicMock()
+
+    return _override
 
 
-def create_test_app():
+@pytest.fixture
+async def mock_supabase_client_dependency():
+    """Mock supabase client deepndency"""
+
+    async def _override():
+        yield MagicMock()
+
+    return _override
+
+
+async def create_test_app():
     """App factory."""
     app = FastAPI()
 
@@ -25,9 +47,9 @@ def create_test_app():
     return app
 
 
-def test_auth_api_error_handler():
+async def test_auth_api_error_handler():
     """Test AuthApiError hanlder."""
-    app = create_test_app()
+    app = await create_test_app()
 
     @app.get("/test")
     def route():
@@ -45,10 +67,10 @@ def test_auth_api_error_handler():
     assert response.json()["message"] == "Invalid credentials"
 
 
-def test_dbapi_error_handler_clean():
+async def test_dbapi_error_handler_clean():
     """Test DBAPIError handler."""
 
-    app = create_test_app()
+    app = await create_test_app()
 
     @app.get("/test")
     def route():
@@ -66,9 +88,9 @@ def test_dbapi_error_handler_clean():
     assert response.json()["detail"] == "connection failed"
 
 
-def test_home():
+async def test_home():
     """Test home."""
-    app = create_test_app()
+    app = await create_test_app()
 
     client = TestClient(app)
 
@@ -81,9 +103,9 @@ def test_home():
 api_v1_auth_prefix = "/api/v1/auth"
 
 
-def test_current_user_returns_user():
+async def test_current_user_returns_user():
     """Test current user returns user."""
-    app = create_test_app()
+    app = await create_test_app()
 
     client = TestClient(app)
 
@@ -108,9 +130,13 @@ def test_current_user_returns_user():
 
 
 @patch("api.v1.auth.views.auth_sign_up", new_callable=AsyncMock)
-def test_successful_sign_up_returns_user(mock_auth_sign_up):
+async def test_successful_sign_up_returns_user(
+    mock_auth_sign_up, mock_db_session_dependency, mock_supabase_client_dependency
+):
     """Test succesful sign up returns user."""
-    app = create_test_app()
+    app = await create_test_app()
+    app.dependency_overrides[get_db_session] = mock_db_session_dependency
+    app.dependency_overrides[get_supabase_client] = mock_supabase_client_dependency
 
     client = TestClient(app)
 
@@ -123,8 +149,10 @@ def test_successful_sign_up_returns_user(mock_auth_sign_up):
     response_json = response.json()
 
     mock_auth_sign_up.assert_awaited_once_with(
-        mock_db_session_dependency,
-        mock_supabase_client_dependeny,
+        # By then, dependencies have yielded/returned whatever they will return which fastapi resolves internally.
+        # Pass in ANY to simulate those interanlly resolved values.
+        ANY,
+        ANY,
         "test@example.com",
         "test123",
     )

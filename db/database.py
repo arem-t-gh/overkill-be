@@ -11,26 +11,46 @@ class Base(DeclarativeBase):
     pass
 
 
-# Acts as the connection layer
-engine = create_async_engine(
-    DB_URI,
-    pool_size=10,
-    max_overflow=20,
-    pool_pre_ping=True,
-    pool_recycle=1800,
-    pool_timeout=20,
-)
+# These are lazy loaded to be test friendly and prevent unintended import side-effects.
+_engine = None
+_session_factory = None
 
 
-# Acts as the write layer
-AsyncSessionLocal: async_sessionmaker[AsyncSession] = async_sessionmaker(
-    # Q: No autocommit=False?
-    # A: Removed in SQLAlchemy 2.0.
-    # https://docs.sqlalchemy.org/en/21/changelog/migration_20.html#autocommit-mode-removed-from-session-autobegin-support-added
-    bind=engine,
-    autoflush=False,
-    expire_on_commit=False,  # After commit, don’t expire objects. Keep their data around.
-)
+def get_engine():
+    """Lazy load engine singleton."""
+    global _engine
+
+    if _engine is None:
+        # Acts as the connection layer
+        _engine = create_async_engine(
+            DB_URI,
+            pool_size=10,
+            max_overflow=20,
+            pool_pre_ping=True,
+            pool_recycle=1800,
+            pool_timeout=20,
+        )
+    return _engine
+
+
+def get_session_factory():
+    """Lazy load async session.
+
+    It is a factory because everytime the session is called, it is a different session.
+    Unlike a singleton which is the same thing everytime it's called.
+    """
+    global _session_factory
+    if _session_factory is None:
+        # Acts as the write layer
+        _session_factory = async_sessionmaker(  # async_sessionamker is a factory itself.
+            # Q: No autocommit=False?
+            # A: Removed in SQLAlchemy 2.0.
+            # https://docs.sqlalchemy.org/en/21/changelog/migration_20.html#autocommit-mode-removed-from-session-autobegin-support-added
+            bind=get_engine(),
+            autoflush=False,
+            expire_on_commit=False,  # After commit, don’t expire objects. Keep their data around.
+        )
+    return _session_factory
 
 
 async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
@@ -42,7 +62,7 @@ async def get_db_session() -> AsyncGenerator[AsyncSession, None]:
     # https://docs.sqlalchemy.org/en/20/orm/session_basics.html#opening-and-closing-a-session
     # https://docs.sqlalchemy.org/en/20/orm/session_basics.html#framing-out-a-begin-commit-rollback-block
 
-    async with AsyncSessionLocal() as session:
+    async with get_session_factory()() as session:
         try:
             yield session
         except Exception:
