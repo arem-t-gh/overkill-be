@@ -1,35 +1,32 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
-from supabase_auth.types import AuthResponse
 
 from api.v1.auth.schemas import SignInRequest, SignUpRequest
+from auth.models import UserReadWithAccessToken
 from auth.service import (
     AuthorizedCurrentUser,
     get_current_user,
+    sign_in as sign_in_service,
     sign_up as auth_sign_up,
 )
 from db.database import DBSession
 from role.constants import ADMIN_ROLE_ID
-from supabase_app.auth.service import sign_in as sb_sign_in
+from supabase_app import SBClient
 from user.models import UserRead
 
 router = APIRouter()
 
 
-# @router.post("/sign-in")
-# async def sign_in(request: SignInRequest) -> AuthResponse:
-#     """Supabase sign in."""
-#     result = sb_sign_in(request.email, request.password)
-#     return result
-
-
-# EXPERIMENTAL. REMOVE THIS AND DO SOMETHING BETTER.
-@router.post("/access-token")
-async def access_token(request: SignInRequest) -> AuthResponse:
+@router.post("/experimental-sign-in")
+async def access_token(
+    db_session: DBSession, sb_client: SBClient, request: SignInRequest
+) -> UserReadWithAccessToken:
     """Supabase sign in."""
     # EXPERIMENTAL. REMOVE THIS AND DO SOMETHING BETTER.
-    result = sb_sign_in(request.email, request.password)
+    result = await sign_in_service(
+        db_session, sb_client, request.email, request.password
+    )
 
     return result
 
@@ -51,7 +48,11 @@ async def current_user(
 
 
 @router.post("/sign-up")
-async def sign_up(db_session: DBSession, request: SignUpRequest) -> UserRead:
+async def sign_up(
+    db_session: DBSession, sb_client: SBClient, request: SignUpRequest
+) -> UserRead:
     """Supabase sign up."""
-    new_user = await auth_sign_up(db_session, request.email, request.password)
+    new_user = await auth_sign_up(
+        db_session, sb_client, request.email, request.password
+    )
     return new_user

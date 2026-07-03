@@ -1,11 +1,18 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
+from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
+from supabase import AsyncClient
 
 from role.constants import USER_ROLE_ID
-from user.models import NewUserRead, UserRead
-from user.service import create_user, get_user_by_external_auth_id
+from user.models import NewUserRead, User, UserRead, UserUpdate
+from user.service import (
+    create_user,
+    delete_user_via_external_auth_id,
+    get_user_by_external_auth_id,
+    update_user,
+)
 
 
 @pytest.fixture
@@ -24,6 +31,7 @@ def db_session():
     session.add = MagicMock()  # sync
     session.commit = AsyncMock()  # async
     session.execute = AsyncMock()  # async
+    session.delete = AsyncMock()  # async
     return session
 
 
@@ -35,7 +43,7 @@ def mock_user():
     independent of the ORM schema — if columns are added/removed, these
     tests don't break unless the service logic itself changes.
     """
-    user = MagicMock()
+    user = MagicMock(spec=User)
     user.id = 1
     user.external_auth_id = "ext-auth-id"
     user.role_id = USER_ROLE_ID
@@ -140,15 +148,10 @@ class TestGetUserByExternalAuthId:
     async def test_returns_user_read_when_found(self, db_session, mock_user):
         """Test user is returned when found."""
         self._make_execute_result(db_session, mock_user)
-        expected = MagicMock(spec=UserRead)
 
-        with patch(
-            "user.service.UserRead.model_validate", return_value=expected
-        ) as mock_validate:
-            result = await get_user_by_external_auth_id(db_session, "ext-auth-id")
+        result = await get_user_by_external_auth_id(db_session, "ext-auth-id")
 
-        mock_validate.assert_called_once_with(mock_user)
-        assert result is expected
+        assert result is mock_user
 
     async def test_returns_none_when_not_found(self, db_session):
         """Test none is returned when not found."""
@@ -175,3 +178,90 @@ class TestGetUserByExternalAuthId:
         await get_user_by_external_auth_id(db_session, "invalid-id")
 
         db_session.execute.assert_awaited_once()
+
+
+class TestUpdateUser:
+    @patch("user.service.get_user_by_id", new_callable=AsyncMock)
+    async def test_successful_update(self, get_user_by_id, db_session):
+        """Test update is successful."""
+        mock_user_orm = User(
+            id=1,
+            external_auth_id="11111111-1111-1111-1111-111111111111",
+            role_id=USER_ROLE_ID,
+            name="Ada Lovelace",
+        )
+
+        expected_result = UserRead(id=1, role_id=USER_ROLE_ID, name="Charles Babbage")
+        update_details = UserUpdate(name="Charles Babbage")
+
+        get_user_by_id.return_value = mock_user_orm
+
+        result = await update_user(db_session, 1, update_details)
+
+        get_user_by_id.assert_awaited_once_with(db_session, 1)
+        assert result == expected_result
+
+    @patch("user.service.get_user_by_id", new_callable=AsyncMock)
+    async def test_user_not_found(self, get_user_by_id, db_session):
+        """Test user to update is not found."""
+
+        get_user_by_id.return_value = None
+        update_details = UserUpdate(name="Charles Babbage")
+        with pytest.raises(HTTPException) as exc_info:
+            await update_user(db_session, 1, update_details)
+
+        get_user_by_id.assert_awaited_once_with(db_session, 1)
+        assert "User is not found." in str(exc_info.value)
+
+
+@pytest.fixture
+def sb_client():
+    """Supabase client fixture."""
+    return AsyncMock(spec=AsyncClient)
+
+
+class TestDeleteUser:
+    @patch("user.service.get_user_by_external_auth_id", new_callable=AsyncMock)
+    @patch("user.service.sb_delete_user", new_callable=AsyncMock)
+    async def test_successful_delete_user_via_external_auth_id(
+        self, sb_delete_user, get_user_by_external_auth_id, db_session, sb_client
+    ):
+        """Test successful delete for delete_user_via_external_auth_id."""
+
+        external_auth_id = "11111111-1111-1111-1111-111111111111"
+        mock_user_orm = User(
+            id=1,
+            external_auth_id=external_auth_id,
+            role_id=USER_ROLE_ID,
+            name="Ada Lovelace",
+        )
+
+        get_user_by_external_auth_id.return_value = mock_user_orm
+
+        result: bool = await delete_user_via_external_auth_id(
+            db_session, sb_client, external_auth_id
+        )
+
+        sb_delete_user.assert_awaited_once_with(sb_client, external_auth_id)
+        get_user_by_external_auth_id.assert_awaited_once_with(
+            db_session, external_auth_id
+        )
+
+        assert result
+
+
+class TestGetUser:
+    def _make_execute_result(self, db_session, user_or_none):
+        """Fake scalar result helper."""
+        mock_result = MagicMock()
+        mock_result.scalar_one_or_none.return_value = user_or_none
+        db_session.execute.return_value = mock_result
+
+    async def test_successful_get(self, db_session, mock_user):
+        self._make_execute_result(db_session, mock_user)
+
+        result = await get_user_by_external_auth_id(
+            db_session, "11111111-1111-1111-1111-111111111111"
+        )
+
+        assert result is mock_user

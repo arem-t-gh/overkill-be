@@ -11,6 +11,9 @@ from exception_handlers import register_exception_handlers
 from role.constants import USER_ROLE_ID
 from user.models import UserRead
 
+mock_db_session_dependency = ANY
+mock_supabase_client_dependeny = ANY
+
 
 def create_test_app():
     """App factory."""
@@ -120,7 +123,8 @@ def test_successful_sign_up_returns_user(mock_auth_sign_up):
     response_json = response.json()
 
     mock_auth_sign_up.assert_awaited_once_with(
-        ANY,  # db_session injected by FastAPI
+        mock_db_session_dependency,
+        mock_supabase_client_dependeny,
         "test@example.com",
         "test123",
     )

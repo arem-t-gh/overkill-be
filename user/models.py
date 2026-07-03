@@ -28,13 +28,13 @@ class User(Base):
 
 
 # Pydantic models
-class UserBaseModel(BaseModel):
+class UserReadBase(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
     role_id: int
 
 
-class NewUserRead(UserBaseModel):
+class NewUserRead(UserReadBase):
     """Newly registered user which surely has an ID but unser whether email or phone number or something else is used to login... compared to UserRead.
 
     And again e.g. that email or phone number, may be stored already in the auth instead of our db.
@@ -43,6 +43,11 @@ class NewUserRead(UserBaseModel):
     pass
 
 
-class UserRead(UserBaseModel):
+class UserRead(UserReadBase):
     email: EmailStr | None = None  # not all users use email for login
+    name: str | None = None
+
+
+class UserUpdate(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
     name: str | None = None
