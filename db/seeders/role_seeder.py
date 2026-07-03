@@ -5,16 +5,16 @@ from role.models import Role
 
 
 async def seed_roles(db_session: AsyncSession):
-    """Seed roles."""
+    """Seed roles in an idempotent manner."""
 
     # TODO: Log start
-    admin_role = Role(id=ADMIN_ROLE_ID, name=ADMIN_ROLE_NAME)
+    roles = [
+        Role(id=ADMIN_ROLE_ID, name=ADMIN_ROLE_NAME),
+        Role(id=USER_ROLE_ID, name=USER_ROLE_NAME),
+    ]
 
-    user_role = Role(id=USER_ROLE_ID, name=USER_ROLE_NAME)
-
-    # TODO: find out an upsert that would work for all db
-    db_session.add(admin_role)
-    db_session.add(user_role)
+    for role in roles:
+        await db_session.merge(role)
     await db_session.commit()
 
     # TODO: Log finish
