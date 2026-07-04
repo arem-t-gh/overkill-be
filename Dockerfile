@@ -9,6 +9,9 @@ COPY pyproject.toml uv.lock ./
 # Create .venv
 RUN uv sync --frozen
 
+COPY alembic.ini ./
+COPY alembic/ ./alembic/
+
 COPY entrypoint.sh ./
 RUN chmod +x /app/entrypoint.sh
 
