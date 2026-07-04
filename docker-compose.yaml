@@ -12,8 +12,8 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - .:/app
-      - /app/.venv
+      - .:/app # take entire project folder (.) and mount into (:) the folder /app inside container
+      - /app/.venv # anonymous volume telling it to protect /app/.venv inside container
     depends_on:
       db:
         condition: service_healthy

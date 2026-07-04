@@ -1,7 +1,12 @@
-# Ignore everything by default
-*
-
-# Only send what the Dockerfile actually needs at build time
-!pyproject.toml
-!uv.lock
-!entrypoint.sh
+.env
+.venv
+__pycache__
+*.pyc
+.git
+.pytest_cache
+.dockerignore
+docker-compose.yml
+build.sh
+start.sh
+entrypoint.local.sh
+tests/
