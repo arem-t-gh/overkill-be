@@ -4,15 +4,19 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 WORKDIR /app
 
-COPY pyproject.toml uv.lock ./
+
+# Each COPY + RUN is a layer
+# If the files in a COPY haven't changed,
+# Docker reuses the cached layer and skips the RUN below it.
+# That's why we copy the dependencies/packages stuff first before the rest of the code.
+# If we copy entire thing first then highly likely, cache will be busted right away
 
 # Create .venv
+COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen
 
-COPY alembic.ini ./
-COPY alembic/ ./alembic/
+COPY . .
 
-COPY entrypoint.sh ./
 RUN chmod +x /app/entrypoint.sh
 
 ENV PATH="/app/.venv/bin:$PATH" \
