@@ -7,7 +7,7 @@ requires-python = ">=3.11"
 dependencies = [
     "alembic>=1.18.4",
     "asyncpg>=0.31.0",
-    "click>=8.4.1",
+    "cyclopts>=4.20.0",
     "fastapi[standard]>=0.136.3",
     "greenlet>=3.5.1",
     "python-dotenv>=1.2.2",
@@ -42,5 +42,5 @@ executor.type = "uv"
 
 # TODO: improve/add CLI --helpers etc
 [tool.poe.tasks]
-authcli = "-m utils.cli.auth ${args}"
+superuser = "-m utils.cli.superuser ${args}"
 fresh-seed = "-m db.seeders.seeder"
