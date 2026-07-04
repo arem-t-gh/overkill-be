@@ -1,5 +1,10 @@
-_You wont be using SQLAlchemy's create_all() stuff. Alembic will handle everything._
 
+### Notes
+- You wont be using SQLAlchemy's create_all() stuff. Alembic will handle everything._
+- Do this before setting up container so that `alembic upgrade head` execution upon build runs successfully.
+
+
+### Steps
 1. Create main database in db provider 
     - e.g. `postgresql+asyncpg://postgres:postgres@localhost/actualdb` 
     - Create the `actualdb` in **postgres** so that migrations have a place to go

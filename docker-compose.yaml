@@ -1,5 +1,8 @@
 services:
   api:
+    # Railway for example doesnt use docker-compose.yaml
+    # So, override entrypoint on local run
+    entrypoint: ["/app/entrypoint.local.sh"] 
     build:
       context: .
     image: overkill-be:dev

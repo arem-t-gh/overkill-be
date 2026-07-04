@@ -1,5 +1,17 @@
 .env
 
+# npm
+# Dependency directories
+node_modules/
+
+# Local pnpm store and virtual store directories
+.pnpm-store/
+.pnpm/
+
+# Logs and debug files
+pnpm-debug.log*
+
+
 # Python-generated files
 __pycache__/
 *.py[oc]
