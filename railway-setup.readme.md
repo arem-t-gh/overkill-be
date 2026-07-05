@@ -17,7 +17,7 @@
 - Go to github repository
     - Settings tab
     - Environments section
-        - Railway should add the service's environment (e.g. `overkill-be / dev`)
+        - Railway should add the service's environment (e.g. `overkill-be / dev` matching the environment from Railway)
     - Add environment secret `DB_URI` value of `DATABASE_PUBLIC_URL`
 - Go back to railway api service and deploy
 - Go to Settings tab
