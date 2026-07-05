@@ -45,3 +45,14 @@ See `pyproject.toml`'s `[tool.poe.tasks*]` sections for `command`s
     - *Within docker network, it's "db" (see also `docker-compose.yaml`). But through mapping, `localhost:5432` maps to `db:5432`*
 - Set username and password based on .env
 - Save
+
+
+### Creating superuser
+- Create a user in supabase auth
+    - Copy UID
+- Create user record
+    - If local
+        - Run `poe superuser create-user-record` 
+    - If dev
+        - Run `Manage superuser`'s `create-user-record` in Github action
+- Check postgres if user record has been made

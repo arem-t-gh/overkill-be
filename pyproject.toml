@@ -42,5 +42,5 @@ executor.type = "uv"
 
 # TODO: improve/add CLI --helpers etc
 [tool.poe.tasks]
-superuser = "-m utils.cli.superuser ${args}"
+manage-superuser = "-m utils.cli.manage_superuser ${args}"
 fresh-seed = "-m db.seeders.seeder"
