@@ -28,6 +28,7 @@
         - Generate domain
 
 # Checks
+- API service settings should take its configurations from `railway.json`
 - Be able to open the public domain
 - Postgres database should be seeded with table and rows
 - Should be able to successfully run github workflows (e.g. `Manage superuser: create-user-record`) against the app
