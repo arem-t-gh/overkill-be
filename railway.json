@@ -5,7 +5,7 @@
   },
   "deploy": {
     "numReplicas": 2,
-    "healthcheckPath": "/",
+    "healthcheckPath": "",
     "healthcheckTimeout": 300,
     "restartPolicyType": "NEVER",
     "region": "asia-southeast1-eqsg3a",
