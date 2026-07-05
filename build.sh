@@ -1,6 +1,8 @@
 #!/bin/sh
 set -e
 
+chmod +x entrypoint.local.sh
+
 echo "Building dev image..."
 docker compose build
 

@@ -5,6 +5,8 @@ services:
     entrypoint: ["/app/entrypoint.local.sh"] 
     build:
       context: .
+      # Assumption: Our services dont use docker-compose
+      dockerfile: Dockerfile.local
     image: overkill-be:dev
     container_name: overkill_api
     env_file:

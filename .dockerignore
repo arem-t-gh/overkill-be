@@ -5,8 +5,7 @@ __pycache__
 .git
 .pytest_cache
 .dockerignore
-docker-compose.yml
+docker-compose.yaml
 build.sh
 start.sh
-entrypoint.local.sh
 tests/
