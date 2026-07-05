@@ -2,5 +2,19 @@
   "$schema": "https://railway.com/railway.schema.json",
   "build": {
     "builder": "RAILPACK"
+  },
+  "deploy": {
+    "numReplicas": 2,
+    "healthcheckPath": "/",
+    "healthcheckTimeout": 10,
+    "restartPolicyType": "NEVER",
+    "region": "asia-southeast1-eqsg3a",
+    "limitOverride": {
+      "containers": {
+        "cpu": 1,
+        "memoryBytes": 1500000000
+      }
+    }
   }
 }
+
