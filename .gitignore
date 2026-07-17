@@ -10,6 +10,7 @@ node_modules/
 
 # Logs and debug files
 pnpm-debug.log*
+logs/
 
 
 # Python-generated files
@@ -20,9 +21,13 @@ dist/
 wheels/
 *.egg-info
 .ruff_cache
+.pytest_cache/
 
 # Virtual environments
 .venv
 
 # Others
 .DS_Store
+.CLAUDE.local.md
+.claude/prompts/*
+!.claude/prompts/readme.txt

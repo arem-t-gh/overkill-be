@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import HTTPException, status
 from sqlalchemy import select
 
@@ -6,6 +8,8 @@ from role.constants import USER_ROLE_ID
 from supabase_app import SBClient
 from supabase_app.auth.service import delete_user as sb_delete_user
 from user.models import NewUserRead, User, UserRead, UserUpdate
+
+logger = logging.getLogger(__name__)
 
 
 async def create_user(
@@ -49,6 +53,8 @@ async def update_user(db_session: DBSession, id: int, details: UserUpdate) -> Us
     user.name = details.name
     await db_session.commit()
 
+    logger.info("Updated user_id=%s", id)
+
     return UserRead.model_validate(user)
 
 
@@ -69,5 +75,12 @@ async def delete_user_via_external_auth_id(
         await db_session.commit()
 
         user_in_db_delete_status = True
+
+    logger.info(
+        "Deleted user external_auth_id=%s (supabase=%s, local=%s)",
+        external_auth_id,
+        sb_auth_delete_status,
+        user_in_db_delete_status,
+    )
 
     return sb_auth_delete_status or user_in_db_delete_status

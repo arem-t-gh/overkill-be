@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from contextlib import asynccontextmanager
 
 # To register all models in python upon running
@@ -6,11 +7,13 @@ from db import alembic_models  # noqa
 from db.database import get_db_session
 from db.seeders.role_seeder import seed_roles
 
+logger = logging.getLogger(__name__)
+
 
 async def run_all_seeders() -> None:
     """Run all seeders."""
 
-    # TODO: Log start
+    logger.info("Running seeders")
 
     # Since get_db_session is an async generator, we have to wrap it in asynccontextmanager to seamlessly use it with `async with` and let it handle the session resource management
     AsyncSeederSessionLocal = asynccontextmanager(get_db_session)
@@ -20,10 +23,10 @@ async def run_all_seeders() -> None:
 
             await session.commit()
 
-            # TODO: Log end
+            logger.info("Seeders finished")
 
         except Exception:
-            # TODO: Log error
+            logger.exception("Seeders failed")
             raise
 
 

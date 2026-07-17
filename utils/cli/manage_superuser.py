@@ -1,5 +1,6 @@
 # import typer
 
+import logging
 from contextlib import asynccontextmanager
 
 from cyclopts import App
@@ -9,6 +10,8 @@ from db.database import get_db_session
 from role.constants import SUPERUSER_ROLE_ID
 from user.models import User
 from user.service import get_user_by_external_auth_id
+
+logger = logging.getLogger(__name__)
 
 app = App()
 
@@ -30,7 +33,14 @@ async def create_user_record(external_auth_id: str):
 
             db_session.add(user)
             await db_session.commit()
+            logger.info(
+                "Created superuser record for external_auth_id=%s", external_auth_id
+            )
         except Exception:
+            logger.exception(
+                "Failed to create superuser record for external_auth_id=%s",
+                external_auth_id,
+            )
             raise
 
 
@@ -47,7 +57,14 @@ async def delete_user_record(external_auth_id: str):
             user = await get_user_by_external_auth_id(db_session, external_auth_id)
             await db_session.delete(user)
             await db_session.commit()
+            logger.info(
+                "Deleted superuser record for external_auth_id=%s", external_auth_id
+            )
         except Exception:
+            logger.exception(
+                "Failed to delete superuser record for external_auth_id=%s",
+                external_auth_id,
+            )
             raise
 
 

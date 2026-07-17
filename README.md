@@ -1,14 +1,24 @@
+
+# Introduction
+
+Feature-oriented FastAPI backend app designed to mirror production development practices including CI/CD, containerized environments, Supabase authentication with custom RBAC, and automated database migrations.
+
+Future implementations would introduce more AI integrations, solving scaling problems, distributed computing, and cloud/infra migrations via IaC.
+
 _This repo is loosely based on: https://github.com/Netflix/dispatch_
 
-<!-- - `poetry install`
-- `poetry env use 3.12`
-- mac: `eval $(poetry env activate)`
-- `fastapi dev main.py` -->
-<!-- SHOULD BE USING DOCKER INSTEAD -->
 
-<!-- TODO: ALL COMMANDS SHOULD BE RUNNING INSIDE DOCKER (cli, linters, etc) -->
+## Pre reqs
+- Python 3.11
+- uv python package manager
+- Docker
+- Claude Code
+- Docker desktop (container GUI)
+- pgAdmin (Postgres GUI)
+
 
 ## Setup
+- Create `.env` file
 - `./build.sh` to create the container entities
 - `./start.sh` to run the project
 - `./stop.sh` to stop the proejct
@@ -16,25 +26,32 @@ _This repo is loosely based on: https://github.com/Netflix/dispatch_
 
 ##
 
+- API in [http://0.0.0.0:8000](http://0.0.0.0:8000)
+- API documentation in [http://0.0.0.0:8000/docs](http://0.0.0.0:8000/docs)
+
+
+
+##
+
 ### Seeding
-- Enter container
+- `./enter-container.sh`
 - `poe fresh-seed`
 
 ### Running linters
-- Enter container
+- `./enter-container.sh`
 - `ruff format`
 - `ruff check`
 - `ruff check --fix`
 
 ### Testing
-- Enter container
+- `./enter-container.sh`
 - `pytest <args>`
 
 ##
 
 ### Running CLI tools
 See `pyproject.toml`'s `[tool.poe.tasks*]` sections for `command`s
-- Enter container
+- `./enter-container.sh`
 - `poe <command> <args>`
 
 
@@ -56,3 +73,16 @@ See `pyproject.toml`'s `[tool.poe.tasks*]` sections for `command`s
     - If dev
         - Run `Manage superuser`'s `create-user-record` in Github action
 - Check postgres if user record has been made
+
+##
+
+### Local logging
+
+- You can manually `log` and access the logs in `logs/`
+
+##
+
+### Cloud deployment
+- Currently deployed in Railway (See: `docs/railway-setup.md`)
+    - Uses config-as-code
+- This is intended to be deployed to AWS via CDK

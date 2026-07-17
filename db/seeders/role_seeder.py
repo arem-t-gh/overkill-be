@@ -1,3 +1,5 @@
+import logging
+
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from role.constants import (
@@ -10,19 +12,22 @@ from role.constants import (
 )
 from role.models import Role
 
+logger = logging.getLogger(__name__)
+
 
 async def seed_roles(db_session: AsyncSession):
     """Seed roles in an idempotent manner."""
 
-    # TODO: Log start
     roles = [
         Role(id=SUPERUSER_ROLE_ID, name=SUPERUSER_ROLE_NAME),
         Role(id=ADMIN_ROLE_ID, name=ADMIN_ROLE_NAME),
         Role(id=USER_ROLE_ID, name=USER_ROLE_NAME),
     ]
 
+    logger.info("Seeding roles: %s", [role.name for role in roles])
+
     for role in roles:
         await db_session.merge(role)
     await db_session.commit()
 
-    # TODO: Log finish
+    logger.info("Seeded %d roles", len(roles))
