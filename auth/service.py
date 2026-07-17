@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated, List
 
 from fastapi import Depends, HTTPException, status
@@ -16,6 +17,8 @@ from supabase_app.auth.service import (
 )
 from user.models import UserRead
 from user.service import create_user, get_user_by_external_auth_id
+
+logger = logging.getLogger(__name__)
 
 
 async def get_current_user(
@@ -45,6 +48,12 @@ class AuthorizedCurrentUser:
     async def __call__(self, user: UserRead = Depends(get_current_user)) -> UserRead:
         """FastAPI executes this method when the dependency is evaluated."""
         if user.role_id not in self.authorized_role_ids:
+            logger.warning(
+                "Authorization denied for user_id=%s role_id=%s (requires one of %s)",
+                user.id,
+                user.role_id,
+                self.authorized_role_ids,
+            )
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="You do not have the required permissions to access this resource.",
@@ -68,9 +77,12 @@ async def sign_up(
             USER_ROLE_ID,
         )
 
+        logger.info("Signed up new user external_auth_id=%s", sb_user.id)
+
         return UserRead(**new_user.model_dump(), email=sb_user.email)
 
     else:
+        logger.error("Sign up: Supabase did not return a user")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="User detail is not returned from Supabase.",
@@ -87,10 +99,11 @@ async def sign_in(
     sb_user = response.user
     access_token = response.session.access_token if response.session else None
 
-    # If user exists in supabase auth but no user entity yet in db, create one
+    # If user exists in supabase auth...
     if sb_user and access_token:
         user_in_db = await get_user_by_external_auth_id(db_session, sb_user.id)
 
+        # ...but no user entity yet in db, create one
         if user_in_db:
             user_in_db = UserRead.model_validate(user_in_db)
             user_in_db.email = sb_user.email
@@ -102,12 +115,17 @@ async def sign_in(
             )
 
             user_in_db = UserRead(**new_user.model_dump(), email=sb_user.email)
+            logger.info(
+                "Signed in user external_auth_id=%s: lazily created missing local user row",
+                sb_user.id,
+            )
 
         return UserReadWithAccessToken(
             **user_in_db.model_dump(), access_token=access_token
         )
 
     else:
+        logger.error("Sign in: Supabase did not return a user and/or access token")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="User detail is not returned from Supabase.",
