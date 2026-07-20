@@ -29,5 +29,3 @@ wheels/
 # Others
 .DS_Store
 .CLAUDE.local.md
-.claude/prompts/*
-!.claude/prompts/readme.txt
