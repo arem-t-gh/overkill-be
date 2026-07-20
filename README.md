@@ -1,9 +1,9 @@
 
 # Introduction
 
-Feature-oriented FastAPI backend app designed to mirror production development practices including CI/CD, containerized environments, Supabase authentication with custom RBAC, and automated database migrations.
+Feature-oriented FastAPI backend app designed to mirror production development practices including AI integrations/monitoring, CI/CD, containerized environments, Supabase authentication with custom RBAC, and automated database migrations.
 
-Future implementations would introduce more AI integrations, solving scaling problems, distributed computing, and cloud/infra migrations via IaC.
+Future implementations would introduce solving scaling problems, distributed computing via message queueing/brokering with microservices, and cloud/infra migrations via IaC.
 
 _This repo is loosely based on: https://github.com/Netflix/dispatch_
 
