@@ -17,9 +17,11 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "httpx>=0.28.1",
     "poethepoet>=0.46.0",
     "pytest>=9.1.1",
     "pytest-asyncio>=1.4.0",
+    "pyyaml>=6.0.3",
     "ruff>=0.15.17",
 ]
 
@@ -44,3 +46,4 @@ executor.type = "uv"
 [tool.poe.tasks]
 manage-superuser = "-m utils.cli.manage_superuser ${args}"
 fresh-seed = "-m db.seeders.seeder"
+check-prompt-budget = "python .github/scripts/check_prompt_budget.py ${args}"

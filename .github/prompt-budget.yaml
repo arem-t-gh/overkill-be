@@ -1,0 +1,25 @@
+# Tracked prompt surfaces for the token-budget CI check.
+# See .github/scripts/check_prompt_budget.py and .github/workflows/prompt-token-budget.yaml
+threshold_percent: 40
+
+# per_file: any single tracked file growing past threshold_percent fails the check.
+# aggregate: only the summed token count across all tracked files matters.
+# Both are always computed and printed; this just controls which one fails the build.
+decision_maker: per_file
+
+# Files whose base token count is below this floor are exempt from the per-file
+# percent-growth check (still shown in the table, just can't fail on percent alone).
+# Below ~200 tokens, a single sentence can swing the percentage 50-100%+ with no
+# real cost impact, so percent growth isn't a meaningful signal yet at that size.
+min_token_floor: 200
+
+paths:
+  - "CLAUDE.md"
+  - ".claude/prompts/**/*.txt"
+  - ".claude/commands/**/*.md"
+  - ".claude/agents/**/*.md"
+
+# Files matched by `paths` above that should still be tracked in git but not
+# budget-checked (e.g. static instructions rather than an actual prompt).
+exclude:
+  - ".claude/prompts/readme.txt"

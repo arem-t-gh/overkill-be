@@ -4,6 +4,11 @@ COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 WORKDIR /app
 
+# git isn't in python:3.11-slim by default; poe check-prompt-budget shells out to it
+# to diff prompt files against a base ref. Local-image-only — prod never runs that check.
+RUN apt-get update && apt-get install -y --no-install-recommends git \
+    && rm -rf /var/lib/apt/lists/*
+
 
 # Each COPY + RUN is a layer
 # If the files in a COPY haven't changed,
