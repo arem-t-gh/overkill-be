@@ -26,16 +26,12 @@ _This repo is loosely based on: https://github.com/Netflix/dispatch_
 - Create `.env` file
 - `./build.sh` to create the container entities
 - `./start.sh` to run the project
+    - API
+        - [http://0.0.0.0:8000](http://0.0.0.0:8000)
+    - API documentation
+        - [http://0.0.0.0:8000/docs](http://0.0.0.0:8000/docs)
 - `./stop.sh` to stop the proejct
 - If you need to run scripts within the environment: `./enter-container.sh`
-
-### Infra ops
-- `cd infra/gcp && terraform init`
-
-- API in [http://0.0.0.0:8000](http://0.0.0.0:8000)
-- API documentation in [http://0.0.0.0:8000/docs](http://0.0.0.0:8000/docs)
-
-
 
 ##
 

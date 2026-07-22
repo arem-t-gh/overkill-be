@@ -18,5 +18,9 @@ resource "google_project_service" "apis" {
 
   project            = var.project_id
   service            = each.value
+
+  # since they arent destroyed, recreating them shouldnt take long compared to the first run
+  # For comparison, on your 1st run, it took 90sec for the APIs to be created
+  # On 2nd run, only 4sec
   disable_on_destroy = false
 }
