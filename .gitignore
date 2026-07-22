@@ -29,3 +29,14 @@ wheels/
 # Others
 .DS_Store
 .CLAUDE.local.md
+
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
