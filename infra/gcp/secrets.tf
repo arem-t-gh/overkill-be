@@ -27,3 +27,22 @@ resource "google_secret_manager_secret_version" "db_uri" {
     google_sql_database_instance.overkill_be.connection_name,
   )
 }
+
+resource "google_secret_manager_secret" "supabase_key" {
+  project   = var.project_id
+  secret_id = "supabase-key"
+
+  replication {
+    auto {}
+  }
+
+  depends_on = [google_project_service.apis]
+}
+
+# Unlike db-uri (assembled from resource attributes), this payload is an
+# externally-issued credential — it enters Terraform as a sensitive variable
+# and flows straight through into the secret.
+resource "google_secret_manager_secret_version" "supabase_key" {
+  secret      = google_secret_manager_secret.supabase_key.id
+  secret_data = var.supabase_key
+}

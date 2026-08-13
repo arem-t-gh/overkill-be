@@ -18,6 +18,15 @@ resource "google_secret_manager_secret_iam_member" "run_db_uri" {
   member    = "serviceAccount:${google_service_account.run_overkill_be.email}"
 }
 
+# Per-secret IAM means per-secret grants: each new secret the service reads
+# needs its own accessor binding — access never comes along for free.
+resource "google_secret_manager_secret_iam_member" "run_supabase_key" {
+  project   = var.project_id
+  secret_id = google_secret_manager_secret.supabase_key.secret_id
+  role      = "roles/secretmanager.secretAccessor"
+  member    = "serviceAccount:${google_service_account.run_overkill_be.email}"
+}
+
 # Lets the SA open connections through the Cloud SQL connector. Granted
 # project-wide because Cloud SQL has no per-instance IAM (unlike secrets) —
 # this is as narrow as this particular permission gets.
@@ -54,6 +63,21 @@ resource "google_cloud_run_v2_service" "overkill_be" {
       env {
         name  = "ENV"
         value = "dev"
+      }
+
+      env {
+        name  = "SUPABASE_URL"
+        value = var.supabase_url
+      }
+
+      env {
+        name = "SUPABASE_KEY"
+        value_source {
+          secret_key_ref {
+            secret  = google_secret_manager_secret.supabase_key.secret_id
+            version = "latest"
+          }
+        }
       }
 
       # Resolved by Cloud Run at deploy time using the runtime SA's
@@ -100,6 +124,8 @@ resource "google_cloud_run_v2_service" "overkill_be" {
     google_project_service.apis,
     google_secret_manager_secret_version.db_uri,
     google_secret_manager_secret_iam_member.run_db_uri,
+    google_secret_manager_secret_version.supabase_key,
+    google_secret_manager_secret_iam_member.run_supabase_key,
   ]
 }
 
