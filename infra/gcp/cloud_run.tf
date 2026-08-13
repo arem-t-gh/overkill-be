@@ -5,8 +5,8 @@
 #   its entire capability surface
 resource "google_service_account" "run_overkill_be" {
   project      = var.project_id
-  account_id   = "overkill-be-run"
-  display_name = "Runtime SA for overkill-be-api Cloud Run service"
+  account_id   = local.runtime_sa_id
+  display_name = "Runtime SA for ${local.service_name} Cloud Run service"
 }
 
 # Same attached-IAM pattern as public_invoker, but targeting the secret:
@@ -37,7 +37,7 @@ resource "google_project_iam_member" "run_cloudsql" {
 }
 
 resource "google_cloud_run_v2_service" "overkill_be" {
-  name     = "overkill-be-api"
+  name     = local.service_name
   location = var.region
   project  = var.project_id
 
@@ -45,6 +45,19 @@ resource "google_cloud_run_v2_service" "overkill_be" {
   # `terraform destroy` from removing the service). We're iterating fast
   # while learning, so we want destroy to actually work.
   deletion_protection = false
+
+  # On every plan, Terraform compares this file against the real service in
+  # GCP and proposes fixing any mismatch. Problem: GCP auto-fills a "scaling"
+  # setting on the service that this file never mentions, so:
+  # - Terraform sees a setting in GCP that isn't in the code and proposes
+  #   removing it — every single plan, forever, even right after applying
+  # - nothing is actually wrong; the removal changes nothing
+  # This line tells Terraform: don't compare "scaling" at all. (If we ever
+  # want real scaling config like min/max instances, that goes in
+  # template.scaling below, which is a different setting and still checked.)
+  lifecycle {
+    ignore_changes = [scaling]
+  }
 
   template {
     service_account = google_service_account.run_overkill_be.email
@@ -54,15 +67,15 @@ resource "google_cloud_run_v2_service" "overkill_be" {
       # "overkill-be" again) means Terraform infers this resource depends on
       # the repository existing first — no explicit depends_on needed here,
       # unlike the API dependency below.
-      image = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.overkill_be.repository_id}/api:manual-test"
+      image = "${var.region}-docker.pkg.dev/${var.project_id}/${google_artifact_registry_repository.overkill_be.repository_id}/${var.image_name}:${var.image_tag}"
 
       ports {
-        container_port = 8000
+        container_port = var.container_port
       }
 
       env {
         name  = "ENV"
-        value = "dev"
+        value = var.app_env
       }
 
       env {

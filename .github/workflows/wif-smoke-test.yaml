@@ -1,0 +1,49 @@
+name: WIF smoke test
+
+# Proves GitHub Actions can log in to GCP via WIF (see infra/gcp/wif.tf)
+# before any real pipeline depends on it. Safe to delete once the deploy
+# pipeline exists and works.
+on:
+  # manual trigger from the Actions tab / `gh workflow run`
+  workflow_dispatch:
+  # also auto-runs when this file itself changes, so it can be tested from
+  # a feature branch (workflow_dispatch only lists workflows already on the
+  # default branch)
+  push:
+    paths:
+      - .github/workflows/wif-smoke-test.yaml
+
+# Explicitly listing any permission sets all unlisted ones to "none".
+# id-token: write lets the job request the signed OIDC note from GitHub —
+# the thing wif.tf's provider verifies; without it, WIF login is impossible.
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  auth-check:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Trades GitHub's OIDC note for a ~1h access token acting as the
+      # deployer SA. The two values are repo variables (Settings > Secrets
+      # and variables > Actions > Variables) — names, not credentials.
+      - name: Authenticate to GCP via WIF
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SA }}
+
+      # gcloud is preinstalled on the runner but not logged in; this points
+      # it at the credentials the auth step produced.
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      # A real API call, not just a login check: describe succeeds only if
+      # the deployer's artifactregistry.writer role is actually attached —
+      # proves authorization, not just authentication.
+      - name: Prove access (describe Artifact Registry repo)
+        run: >-
+          gcloud artifacts repositories describe ${{ vars.GCP_AR_REPO }}
+          --project ${{ vars.GCP_PROJECT_ID }}
+          --location ${{ vars.GCP_REGION }}

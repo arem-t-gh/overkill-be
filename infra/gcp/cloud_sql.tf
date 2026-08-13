@@ -1,8 +1,8 @@
 resource "google_sql_database_instance" "overkill_be" {
   project          = var.project_id
   region           = var.region
-  name             = "overkill-be-db"
-  database_version = "POSTGRES_16"
+  name             = local.db_instance_name
+  database_version = var.db_version
 
   # Cheapest available combination — no free tier exists for Cloud SQL at all:
   # - shared-core tiers like db-f1-micro only exist in the ENTERPRISE edition;
@@ -10,7 +10,7 @@ resource "google_sql_database_instance" "overkill_be" {
   settings {
     # only ENTERPRISE and ENTERPRISE_PLUS
     edition = "ENTERPRISE"
-    tier    = "db-f1-micro"
+    tier    = var.db_tier
   }
 
   # Prevents `terraform destroy` from being blocked, same reasoning as
@@ -26,7 +26,7 @@ resource "google_sql_database_instance" "overkill_be" {
 resource "google_sql_database" "app" {
   project  = var.project_id
   instance = google_sql_database_instance.overkill_be.name
-  name     = "overkill"
+  name     = var.db_name
 }
 
 # Generated at apply time, never written in config:
@@ -42,6 +42,6 @@ resource "random_password" "db_user" {
 resource "google_sql_user" "app" {
   project  = var.project_id
   instance = google_sql_database_instance.overkill_be.name
-  name     = "overkill_app"
+  name     = var.db_user_name
   password = random_password.db_user.result
 }
