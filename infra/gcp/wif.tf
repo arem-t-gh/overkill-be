@@ -102,6 +102,7 @@ resource "google_project_iam_member" "deployer_ar_writer" {
 # The two values the GitHub workflow's login step needs. Neither is a
 # secret — they're names, not credentials; they go in the workflow file
 # as plain text.
+# Outputs exist precisely so values Terraform computed during apply can be read back out and fed to whatever needs them:
 output "wif_provider_name" {
   value = google_iam_workload_identity_pool_provider.github.name
 }
