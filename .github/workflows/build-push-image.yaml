@@ -1,0 +1,60 @@
+name: Build and push image
+
+# Builds the prod Dockerfile and pushes it to Artifact Registry, tagged
+# with the commit SHA that produced it
+on:
+  push:
+    branches:
+      - main
+      # temporary while the pipeline is developed on this branch — remove
+      # once merged to main
+      - gcp-scaffold
+  workflow_dispatch:
+
+# id-token: write — allows requesting GitHub's signed OIDC note for WIF login (see wif.tf); 
+# contents: read — allows checkout to clone the repo.
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+
+    env:
+      # The full image address, assembled once from repo variables:
+      # <region host>/<project>/<AR repo>/<image>:<commit sha>
+      # "|| 'api'" = default when the GCP_IMAGE_NAME variable isn't set,
+      # same idea as a Terraform variable default.
+      # side note: docker.pkg.dev is simply Google's domain for Artifact Registry:
+      IMAGE: ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_AR_REPO }}/${{ vars.GCP_IMAGE_NAME || 'api' }}:${{ github.sha }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Authenticate to GCP via WIF
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_DEPLOYER_SA }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      # docker doesn't know how to log in to Artifact Registry on its own;
+      # this registers gcloud as docker's credential helper for our
+      # region's registry host, so `docker push` silently reuses the WIF
+      # login from the auth step.
+      - name: Configure docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
+
+      # --platform matches what the manual bootstrap push used: Cloud Run
+      # runs amd64. The runner is already amd64, so this is documentation
+      # as much as instruction — but it keeps the build correct even if
+      # GitHub ever changes runner architecture.
+      - name: Build image
+        run: docker build --platform linux/amd64 -t "$IMAGE" .
+
+      - name: Push image
+        run: docker push "$IMAGE"
