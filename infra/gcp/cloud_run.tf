@@ -62,6 +62,11 @@ resource "google_cloud_run_v2_service" "overkill_be" {
       # image: owned by CI (`gcloud run deploy` in build-push-image.yaml), so
       # Terraform must not compare it — an apply would roll deploys back.
       template[0].containers[0].image,
+
+      # "last deployed with" metadata stamped by gcloud on every CI deploy;
+      # not ours to manage.
+      client,
+      client_version,
     ]
   }
 
