@@ -52,11 +52,17 @@ resource "google_cloud_run_v2_service" "overkill_be" {
   # - Terraform sees a setting in GCP that isn't in the code and proposes
   #   removing it — every single plan, forever, even right after applying
   # - nothing is actually wrong; the removal changes nothing
-  # This line tells Terraform: don't compare "scaling" at all. (If we ever
-  # want real scaling config like min/max instances, that goes in
-  # template.scaling below, which is a different setting and still checked.)
   lifecycle {
-    ignore_changes = [scaling]
+    ignore_changes = [
+      # This line tells Terraform: don't compare "scaling" at all. (If we ever
+      # want real scaling config like min/max instances, that goes in
+      # template.scaling below, which is a different setting and still checked.)
+      scaling,
+ 
+      # image: owned by CI (`gcloud run deploy` in build-push-image.yaml), so
+      # Terraform must not compare it — an apply would roll deploys back.
+      template[0].containers[0].image,
+    ]
   }
 
   template {
