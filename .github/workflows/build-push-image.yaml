@@ -11,15 +11,24 @@ on:
       - gcp-scaffold
   workflow_dispatch:
 
-# id-token: write — allows requesting GitHub's signed OIDC note for WIF login (see wif.tf); 
-# contents: read — allows checkout to clone the repo.
-permissions:
-  id-token: write
-  contents: read
-
 jobs:
+  # Deploy gate: reruns of the test/lint workflows as jobs of this one —
+  # a failing commit never reaches the build.
+  test:
+    uses: ./.github/workflows/pytest.yaml
+  lint:
+    uses: ./.github/workflows/ruff.yaml
+
   build-push:
+    # needs = only start after these jobs succeed; any failure skips this job.
+    needs: [test, lint]
     runs-on: ubuntu-latest
+
+    permissions:
+      # id-token: write — allows requesting GitHub's signed OIDC note for WIF login (see wif.tf); 
+      id-token: write
+      #  contents: read — allows checkout to clone the repo.
+      contents: read
 
     env:
       # The full image address, assembled once from repo variables:
