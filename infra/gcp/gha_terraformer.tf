@@ -53,11 +53,13 @@ resource "google_project_iam_member" "terraformer" {
   member  = "serviceAccount:${google_service_account.terraformer.email}"
 }
 
-# Terraform's first act every run is reading/writing state in this bucket.
-# The bucket itself is unmanaged (bootstrap), but its IAM can be.
+# objectAdmin (data only) isn't enough — this resource itself IS a
+# bucket-level IAM grant, so managing/planning it needs bucket IAM
+# read/write too, which only storage.admin covers. Still scoped to this
+# one bucket, not project-wide.
 resource "google_storage_bucket_iam_member" "terraformer_tfstate" {
   bucket = var.tfstate_bucket
-  role   = "roles/storage.objectAdmin"
+  role   = "roles/storage.admin"
   member = "serviceAccount:${google_service_account.terraformer.email}"
 }
 
