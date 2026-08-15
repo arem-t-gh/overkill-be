@@ -10,6 +10,12 @@ on:
       - .github/workflows/gcp_tf_infra.yaml
       - .github/workflows/_gcp_tf.yaml
 
+# A reusable workflow can never hold more than its caller does — this must
+# grant everything _gcp_tf.yaml requests, or its request gets capped to none.
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   # Ungated — read-only, runs whenever this workflow is manually triggered.
   plan:
