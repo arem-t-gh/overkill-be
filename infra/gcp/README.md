@@ -1,3 +1,13 @@
+# Directory structure
+
+- Flat single root, files split by feature (`cloud_run.tf`, `gha_deployer.tf`, ...) — Terraform merges all `.tf` files in the folder; the split is purely for readers
+- Future multi-env plan (when stage/prod arrive, not before): resources get extracted into a shared `modules/` folder, and each environment becomes a thin `envs/<env>/` root calling that module with its own values — reuse, not copy-paste. Deferred on purpose: modules are extracted when the second consumer exists, and today only dev does
+
+# Secrets (local)
+- Externally-issued values (Supabase URL/key) aren't Terraform's to generate, so they come in as variables. Locally, `tf.sh` reuses the app's own `SUPABASE_URL`/`SUPABASE_KEY` from the repo's root `.env` — no separate tfvars file, no duplicated values.
+- Use `./tf.sh <command>` instead of bare `terraform <command>` for anything needing those values (`plan`, `apply`) — it sources `.env`, then exports the `TF_VAR_*` names Terraform actually looks for (env vars must match `TF_VAR_<name>` exactly; `terraform init`/`validate` don't need any of this).
+- CI supplies the same variables its own way: `TF_VAR_*` from GitHub Actions secrets/variables (see `tf.yaml`)
+
 # Setup
 - `cd infra/gcp && terraform init`
     - What happens:

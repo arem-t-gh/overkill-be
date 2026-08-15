@@ -1,2 +1,0 @@
-supabase_url = "https://<project-ref>.supabase.co"
-supabase_key = "<service-role-key>"

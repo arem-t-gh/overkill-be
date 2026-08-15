@@ -72,12 +72,21 @@ locals {
   db_instance_name = "${var.app_name}-db"
   runtime_sa_id    = "${var.app_name}-run"
   deployer_sa_id   = "${var.app_name}-deployer"
+  tf_sa_id         = "${var.app_name}-tf"
 }
 
 variable "region" {
   description = "Default GCP region for regional resources"
   type        = string
   default     = "asia-southeast1"
+}
+
+# Must match the literal bucket in versions.tf's backend block (backends
+# can't read variables — see comment there); two spots to update together.
+variable "tfstate_bucket" {
+  description = "GCS bucket holding the Terraform state"
+  type        = string
+  default     = "overkill-be-dev-1-tfstate"
 }
 
 # owner/name, exactly as it appears on github.com — this string is the WIF
