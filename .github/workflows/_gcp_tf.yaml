@@ -53,6 +53,18 @@ jobs:
       - name: Terraform init
         run: terraform init
 
+      # TEMPORARY debug — prints only the LENGTH of each value, never the
+      # value itself, to confirm whether the secret is actually reaching
+      # this job. Remove once the empty-payload issue is resolved.
+      - name: Debug check secret length
+        if: inputs.cmd == 'plan'
+        env:
+          TF_VAR_supabase_url: ${{ vars.SUPABASE_URL }}
+          TF_VAR_supabase_key: ${{ secrets.SUPABASE_KEY }}
+        run: |
+          echo "SUPABASE_URL length: ${#TF_VAR_supabase_url}"
+          echo "SUPABASE_KEY length: ${#TF_VAR_supabase_key}"
+
       # Supabase values: TF_VAR_* env vars from GitHub secrets, the CI
       # equivalent of the local terraform.local.auto.tfvars file.
       - name: Terraform plan
