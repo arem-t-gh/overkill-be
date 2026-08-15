@@ -9,6 +9,7 @@ on:
     paths:
       - .github/workflows/gcp_tf_infra.yaml
       - .github/workflows/_gcp_tf.yaml
+      - infra/gcp/**
 
 # A reusable workflow can never hold more than its caller does — this must
 # grant everything _gcp_tf.yaml requests, or its request gets capped to none.
