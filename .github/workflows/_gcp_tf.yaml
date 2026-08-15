@@ -82,4 +82,7 @@ jobs:
 
       - name: Terraform apply # applies the plan
         if: inputs.cmd == 'apply'
+        env:
+          TF_VAR_supabase_url: ${{ vars.SUPABASE_URL }}
+          TF_VAR_supabase_key: ${{ secrets.SUPABASE_KEY }}
         run: terraform apply -no-color tfplan
