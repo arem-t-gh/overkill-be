@@ -2,14 +2,6 @@ name: GCP TF Infra
 
 on:
   workflow_dispatch:
-  # TEMPORARY: lets this run once from a non-default branch to prove it
-  # works before merge — workflow_dispatch alone can't fire until this file
-  # is on main. Remove this push trigger once verified (steady state: manual only).
-  push:
-    paths:
-      - .github/workflows/gcp_tf_infra.yaml
-      - .github/workflows/_gcp_tf.yaml
-      - infra/gcp/**
 
 # A reusable workflow can never hold more than its caller does — this must
 # grant everything _gcp_tf.yaml requests, or its request gets capped to none.

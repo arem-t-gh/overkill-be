@@ -6,9 +6,6 @@ on:
   push:
     branches:
       - main
-      # temporary while the pipeline is developed on this branch — remove
-      # once merged to main
-      - gcp-scaffold
   workflow_dispatch:
 
 jobs:
