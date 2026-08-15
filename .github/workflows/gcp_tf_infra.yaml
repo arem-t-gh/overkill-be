@@ -1,0 +1,31 @@
+name: GCP TF Infra
+
+on:
+  workflow_dispatch:
+
+# A reusable workflow can never hold more than its caller does — this must
+# grant everything _gcp_tf.yaml requests, or its request gets capped to none.
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  # Ungated — read-only, runs whenever this workflow is manually triggered.
+  # secrets: inherit — unlike vars, secrets are NOT passed to a called
+  # workflow automatically; without this, secrets.SUPABASE_KEY is silently empty.
+  plan:
+    uses: ./.github/workflows/_gcp_tf.yaml
+    with:
+      cmd: plan
+      environment: plan
+    secrets: inherit
+
+  # Gated — the "dev" environment requires reviewer approval (Settings >
+  # Environments), same mechanism utils_manage_superuser_cli.yaml already uses.
+  apply:
+    needs: plan
+    uses: ./.github/workflows/_gcp_tf.yaml
+    with:
+      cmd: apply
+      environment: dev
+    secrets: inherit

@@ -1,8 +1,10 @@
 name: Ruff
 
+# workflow_call makes this callable as a job by other workflows —
+# gcp_build_push_image.yaml runs it as the deploy gate.
 on:
   pull_request:
-  push:
+  workflow_call:
 
 jobs:
   ruff:

@@ -1,0 +1,88 @@
+name: Terraform run
+
+# Reusable — called by terraform.yml once per stage (plan, then apply).
+# `environment` is what gates approval: "plan" has no protection rules
+# (runs unattended), var.app_env's name (e.g. "dev") requires a reviewer.
+on:
+  workflow_call:
+    inputs:
+      cmd:
+        description: "plan or apply"
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform:
+    name: terraform ${{ inputs.cmd }}
+    environment: ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: infra/gcp
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Authenticate to GCP via WIF
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ vars.GCP_WIF_PROVIDER }}
+          service_account: ${{ vars.GCP_TERRAFORMER_SA }}
+
+      # setup-terraform has no "read from file" input (unlike setup-uv's
+      # version-file) — read .terraform-version ourselves and pass it on.
+      - name: Read Terraform version
+        id: tfversion
+        # this works because we have working-directory set to infra/gcp
+        run: echo "version=$(cat .terraform-version)" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: ${{ steps.tfversion.outputs.version }}
+          terraform_wrapper: false
+
+      - name: Terraform init
+        run: terraform init
+
+      # Supabase values: TF_VAR_* env vars from GitHub secrets, the CI
+      # equivalent of the local terraform.local.auto.tfvars file.
+      - name: Terraform plan
+        if: inputs.cmd == 'plan'
+        env:
+          TF_VAR_supabase_url: ${{ vars.SUPABASE_URL }}
+          TF_VAR_supabase_key: ${{ secrets.SUPABASE_KEY }}
+        run: terraform plan -no-color -out=tfplan
+
+      # Uploaded so apply runs the EXACT plan a reviewer approved, not a
+      # fresh re-plan that could differ if something changed in between.
+      - name: Upload plan
+        if: inputs.cmd == 'plan'
+        uses: actions/upload-artifact@v4
+        with:
+          name: tfplan
+          path: infra/gcp/tfplan
+          retention-days: 1
+
+      # Download plan and terraform apply are sequential
+      - name: Download plan # fetches the file
+        if: inputs.cmd == 'apply'
+        uses: actions/download-artifact@v4
+        with:
+          name: tfplan
+          path: infra/gcp
+
+      - name: Terraform apply # applies the plan
+        if: inputs.cmd == 'apply'
+        env:
+          TF_VAR_supabase_url: ${{ vars.SUPABASE_URL }}
+          TF_VAR_supabase_key: ${{ secrets.SUPABASE_KEY }}
+        run: terraform apply -no-color tfplan
